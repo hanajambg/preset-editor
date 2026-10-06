@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor Preset Jir - Auto CapCut & AM Studio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        neon: {
+                            cyan: '#00f3ff',
+                            purple: '#b026ff',
+                            lime: '#39ff14',
+                            pink: '#ff007f'
+                        },
+                        darkbg: '#090d16',
+                        cardbg: '#121826',
+                        inputbg: '#1a2234'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #090d16; }
+        
+        /* Neon Glow Effects */
+        .glow-cyan { box-shadow: 0 0 20px rgba(0, 243, 255, 0.35); }
+        .glow-purple { box-shadow: 0 0 20px rgba(176, 38, 255, 0.35); }
+        .border-glow-cyan { border-color: rgba(0, 243, 255, 0.5); }
+        
+        /* 🗿 Mascot Animations */
+        @keyframes mascotBounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(3deg); }
+        }
+        @keyframes mascotShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px) rotate(-5deg); }
+            40%, 80% { transform: translateX(8px) rotate(5deg); }
+        }
+        @keyframes mascotLaser {
+            0%, 100% { filter: drop-shadow(0 0 5px #00f3ff); }
+            50% { filter: drop-shadow(0 0 25px #ff007f) hue-rotate(180deg); }
+        }
+
+        .animate-mascot-idle { animation: mascotBounce 3s ease-in-out infinite; }
+        .animate-mascot-shake { animation: mascotShake 0.4s ease-in-out; }
+        .animate-mascot-laser { animation: mascotLaser 1.5s infinite linear; }
+
+        /* Jedag Jedug Live Canvas Animations */
+        @keyframes jjBeatFull {
+            0% { transform: scale(1) rotate(0deg); filter: brightness(100%); }
+            10% { transform: scale(1.15) rotate(-2deg); filter: brightness(140%) contrast(120%); }
+            20% { transform: scale(0.98) rotate(1deg); filter: brightness(90%); }
+            30% { transform: scale(1.22) rotate(2deg); filter: brightness(150%) hue-rotate(20deg); }
+            40% { transform: scale(1) rotate(0deg); filter: brightness(100%); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes jjThinShake {
+            0% { transform: translate(0, 0) scale(1); }
+            15% { transform: translate(-5px, 3px) scale(1.05) skewX(2deg); }
+            30% { transform: translate(5px, -3px) scale(1.02) skewX(-2deg); }
+            45% { transform: translate(-3px, -2px) scale(1.08); }
+            60% { transform: translate(0, 0) scale(1); }
+        }
+
+        @keyframes jjMengkaneSlow {
+            0% { transform: scale(1); filter: contrast(100%) saturate(100%); }
+            50% { transform: scale(1.1); filter: contrast(130%) saturate(160%) sepia(20%); }
+            100% { transform: scale(1); filter: contrast(100%) saturate(100%); }
+        }
+
+        .jj-anim-beat { animation: jjBeatFull 1.2s infinite cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+        .jj-anim-thin { animation: jjThinShake 0.8s infinite linear; }
+        .jj-anim-slow { animation: jjMengkaneSlow 2.5s infinite ease-in-out; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-neon-cyan selection:text-black">
+
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <div id="loginOverlay" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
+        <div class="bg-cardbg border border-slate-800 hover:border-neon-cyan/50 transition-all rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+            <!-- Glow background circle -->
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-neon-cyan/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-neon-purple/10 rounded-full blur-2xl"></div>
+
+            <div class="text-center space-y-3 relative z-10">
+                <!-- Interactive 🗿 Mascot Container -->
+                <div class="relative inline-block cursor-pointer group" onclick="pokeMascot()">
+                    <div id="mascotWrapper" class="text-7xl select-none animate-mascot-idle transition-transform duration-300">
+                        🗿
+                    </div>
+                    <!-- Pupil/Mascot Pupil Accessories -->
+                    <div id="mascotStatusBadge" class="absolute -bottom-1 right-0 bg-neon-cyan text-black font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-lg">
+                        JIR!
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-black tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-neon-cyan via-white to-neon-purple">
+                        EDITOR PRESET JIR
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Masukin username kamu bro biar bisa ngedit preset viral!</p>
+                </div>
+
+                <form onsubmit="handleLogin(event)" class="space-y-4 pt-4 text-left">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1.5">
+                            <i class="fa-solid fa-user-astronaut text-neon-cyan mr-1"></i> Username Editor
+                        </label>
+                        <input type="text" id="loginUsername" required placeholder="Contoh: Asep_EditZz"
+                            oninput="onUsernameType(this.value)"
+                            class="w-full bg-inputbg border border-slate-700 focus:border-neon-cyan rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1.5">
+                            <i class="fa-solid fa-key text-neon-purple mr-1"></i> Passkey / PIN Sederhana
+                        </label>
+                        <input type="password" id="loginPassword" required placeholder="••••••••"
+                            onfocus="onPasswordFocus()" onblur="onPasswordBlur()"
+                            class="w-full bg-inputbg border border-slate-700 focus:border-neon-purple rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none transition">
+                    </div>
+
+                    <button type="submit" id="btnLoginSubmit"
+                        class="w-full bg-gradient-to-r from-neon-cyan to-neon-purple hover:opacity-90 text-black font-extrabold py-3 px-6 rounded-xl transition duration-300 shadow-lg glow-cyan flex items-center justify-center gap-2 text-sm mt-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> MASUK KE STUDIO JIR
+                    </button>
+                </form>
+
+                <p class="text-[11px] text-slate-500 pt-2">
+                    <i class="fa-solid fa-shield-halved text-emerald-400"></i> Bebas Watermark & Direct Render Engine
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <header class="border-b border-slate-800/80 bg-cardbg/80 backdrop-blur-xl sticky top-0 z-40 px-4 lg:px-8 py-3.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-neon-cyan to-neon-purple flex items-center justify-center text-black font-black text-xl shadow-lg glow-cyan">
+                    🗿
+                </div>
+                <div>
+                    <h1 class="text-base font-extrabold tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-neon-cyan via-white to-neon-purple">
+                        EDITOR PRESET JIR
+                    </h1>
+                    <p class="text-[10px] text-slate-400 font-mono">CapCut & AM Auto-Replacer v3.5</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <!-- User Profile Badge -->
+                <div id="userProfileBadge" class="hidden flex items-center gap-2 bg-inputbg border border-slate-700/80 px-3 py-1.5 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-neon-lime animate-pulse"></span>
+                    <span id="displayUsername" class="text-xs font-bold text-slate-200">Editor</span>
+                    <button onclick="handleLogout()" title="Logout" class="text-slate-400 hover:text-neon-pink text-xs ml-1 transition">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full px-4 lg:px-8 py-6 flex-1 space-y-8">
+
+        <!-- SECTION 1: Jedag Jedug Viral Showcase (Update Bulan Ini) -->
+        <section class="space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-fire text-neon-pink animate-bounce"></i> Jedag Jedug Viral Terpopuler
+                        <span class="text-xs font-normal px-2.5 py-0.5 rounded-full bg-neon-pink/10 text-neon-pink border border-neon-pink/30">
+                            Update Bulan Ini 🔥
+                        </span>
+                    </h2>
+                    <p class="text-xs text-slate-400">Pilih rekomendasi preset Jedag Jedug yang lagi rame di TikTok & Reels.</p>
+                </div>
+                <div class="text-xs text-slate-400 font-mono">
+                    <i class="fa-solid fa-chart-line text-neon-cyan"></i> 5 Template Tren Hari Ini
+                </div>
+            </div>
+
+            <!-- Viral Templates Horizontal Scroll Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" id="viralPresetsList">
+                <!-- Preset items generated via JS -->
+            </div>
+        </section>
+
+        <!-- SECTION 2: Main Editor Studio Area -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left Column: Custom Link & Photo Slots Manager -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- Link Import Card -->
+                <div class="bg-cardbg rounded-2xl p-5 border border-slate-800 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-link text-neon-cyan"></i> Import Link Template / XML
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-mono">CapCut / AM / LR</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="relative">
+                            <input type="text" id="customUrlInput" placeholder="Tempel URL CapCut / Link XML AM di sini..."
+                                class="w-full bg-inputbg border border-slate-700 focus:border-neon-cyan rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none transition pr-10">
+                            <button onclick="pasteClipboardLink()" title="Paste Link" class="absolute right-3 top-3 text-slate-400 hover:text-neon-cyan transition text-xs">
+                                <i class="fa-solid fa-paste"></i>
+                            </button>
+                        </div>
+
+                        <button onclick="analyzeCustomLink()" id="btnAnalyzeLink" class="w-full bg-inputbg hover:bg-slate-800 text-neon-cyan border border-neon-cyan/40 font-bold py-2.5 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 text-xs">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Analisis & Ambil Slot Preset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Detected Photo Slots Box -->
+                <div class="bg-cardbg rounded-2xl p-5 border border-slate-800 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Slot Foto Media</h3>
+                            <p class="text-[11px] text-slate-400" id="slotInfoText">Pilih preset atau masukkan link untuk memulai.</p>
+                        </div>
+                        <span id="slotCounterBadge" class="hidden text-xs bg-neon-purple/20 text-neon-purple px-2.5 py-1 rounded-full font-extrabold border border-neon-purple/30">
+                            0 Slot
+                        </span>
+                    </div>
+
+                    <!-- Placeholder Empty State -->
+                    <div id="emptySlotState" class="py-10 text-center border-2 border-dashed border-slate-800 rounded-xl bg-inputbg/30">
+                        <i class="fa-solid fa-photo-film text-4xl text-slate-700 mb-2 block"></i>
+                        <p class="text-xs text-slate-400 font-medium">Belum ada template aktif.</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Klik "Pakai Template Ini" di atas atau masukkan URL.</p>
+                    </div>
+
+                    <!-- Dynamic Rendered Slots -->
+                    <div id="dynamicSlotsContainer" class="space-y-3 hidden"></div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Live Player & Quality Downloader -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Live Animation Player Canvas -->
+                <div class="bg-cardbg rounded-2xl p-5 border border-slate-800 shadow-xl flex flex-col items-center">
+                    <div class="w-full flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-neon-pink"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-neon-cyan"></span>
+                            <span class="text-xs font-bold text-slate-300 font-mono" id="activePresetTitle">Preview Canvas Studio</span>
+                        </div>
+                        <button onclick="togglePreviewPlay()" id="btnTogglePlay" class="text-xs bg-inputbg hover:bg-slate-800 text-neon-lime px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5 font-bold">
+                            <i class="fa-solid fa-play"></i> <span id="playText">Putar Efek JJ</span>
+                        </button>
+                    </div>
+
+                    <!-- Phone Frame Simulator (9:16) -->
+                    <div class="relative w-full max-w-[300px] aspect-[9/16] bg-black rounded-3xl overflow-hidden border-4 border-slate-800 shadow-2xl flex items-center justify-center group" id="canvasFrame">
+                        
+                        <!-- Canvas Image Effect Stack -->
+                        <div id="canvasViewport" class="w-full h-full relative overflow-hidden bg-slate-950 flex items-center justify-center">
+                            
+                            <div id="previewPlaceholder" class="text-center p-6 text-slate-600">
+                                <i class="fa-solid fa-clapperboard text-5xl mb-3 block opacity-30"></i>
+                                <p class="text-xs font-bold">Layar Preview Jedag Jedug</p>
+                                <p class="text-[10px] text-slate-600 mt-1">Foto yang kamu pasang bakal tampil di sini jir!</p>
+                            </div>
+
+                            <img id="liveCanvasImage" class="w-full h-full object-cover hidden" src="" alt="JJ Studio Preview">
+                            
+                            <!-- Neon Watermark Tag -->
+                            <div class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-[9px] text-neon-cyan px-2 py-0.5 rounded border border-neon-cyan/30 font-mono font-bold">
+                                🗿 EDITOR PRESET JIR
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar Slide Overlay -->
+                        <div id="slideProgressBars" class="absolute top-3 left-3 right-3 flex gap-1 hidden"></div>
+                    </div>
+
+                    <!-- Audio Info Bar -->
+                    <div class="w-full mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                        <div class="flex items-center gap-2 truncate">
+                            <i class="fa-solid fa-compact-disc text-neon-cyan animate-spin"></i>
+                            <span id="audioTrackTitle" class="font-mono text-[11px]">Audio: Sound_JJ_Mengkane_Viral.mp3</span>
+                        </div>
+                        <span class="text-neon-lime font-mono text-[11px] font-bold">60 FPS REALTIME</span>
+                    </div>
+                </div>
+
+                <div class="bg-cardbg rounded-2xl p-5 border border-slate-800 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-download text-neon-lime"></i> Pilihan Kualitas Unduh
+                            </h3>
+                            <p class="text-[11px] text-slate-400">Pilih resolusi dari hemat kuota hingga ultra HD.</p>
+                        </div>
+                        <span class="text-[10px] font-mono bg-neon-lime/10 text-neon-lime px-2 py-0.5 rounded border border-neon-lime/30">
+                            Tanpa Watermark
+                        </span>
+                    </div>
+
+                    <!-- Resolution Selection Selector -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="resolutionGrid">
+                        <!-- Resolutions dynamically built -->
+                    </div>
+
+                    <!-- Export Progress Indicator -->
+                    <div id="renderProgressBox" class="space-y-2 hidden pt-2">
+                        <div class="flex justify-between text-xs font-mono">
+                            <span id="renderStatusText" class="text-neon-cyan">Menggabungkan frame JJ...</span>
+                            <span id="renderPercentText" class="text-white font-bold">0%</span>
+                        </div>
+                        <div class="w-full bg-inputbg h-3 rounded-full overflow-hidden border border-slate-800">
+                            <div id="renderProgressBar" class="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink h-full w-0 transition-all duration-200"></div>
+                        </div>
+                    </div>
+
+                    <!-- Render & Download Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button onclick="startStudioRender()" id="btnStartRender"
+                            class="flex-1 bg-gradient-to-r from-neon-cyan via-blue-600 to-neon-purple text-black font-extrabold py-3 px-6 rounded-xl transition duration-300 shadow-lg glow-cyan flex items-center justify-center gap-2 text-xs">
+                            <i class="fa-solid fa-gears"></i> PROSES VIDEO SEKARANG
+                        </button>
+                        <a id="btnFinalDownload" download="Preset_Jir_Result.mp4" href="#" onclick="onDownloadClick()"
+                            class="hidden flex-1 bg-neon-lime hover:bg-lime-400 text-black font-extrabold py-3 px-6 rounded-xl transition duration-300 shadow-lg shadow-neon-lime/20 flex items-center justify-center gap-2 text-xs">
+                            <i class="fa-solid fa-file-arrow-down"></i> UNDUH HASIL VIDEO (<span id="dlSizeLabel">--</span>)
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="border-t border-slate-800/80 bg-cardbg/50 py-4 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>© 2026 Editor Preset Jir • Auto Engine CapCut & Alight Motion</p>
+            <p class="text-slate-400 font-mono text-[11px]">Dibuat khusus editor pro & pemula 🗿</p>
+        </div>
+    </footer>
+
+    <script>
+        // Database Referensi Jedag Jedug Viral Bulan Ini
+        const viralPresets = [
+            {
+                id: 'jj-1',
+                title: 'JJ Velocity Slowmo Aesthetic',
+                author: 'Asep_EditZz',
+                slots: 3,
+                duration: '00:15',
+                badges: 'VIRAL TIKTOK',
+                effectClass: 'jj-anim-beat',
+                audio: 'Sound_JJ_Velocity_Remix_2026.mp3',
+                slotLabels: ['Foto 1 (Intro Slowmo)', 'Foto 2 (Beat Drop)', 'Foto 3 (Climax Zoom)']
+            },
+            {
+                id: 'jj-2',
+                title: 'JJ Mengkane Beat Breakfunk',
+                author: 'RianAM_Project',
+                slots: 2,
+                duration: '00:12',
+                badges: 'FULL SOUND',
+                effectClass: 'jj-anim-slow',
+                audio: 'Breakfunk_Mengkane_Bass.mp3',
+                slotLabels: ['Foto Utama (Intro)', 'Foto Shake Beat']
+            },
+            {
+                id: 'jj-3',
+                title: 'JJ Thin / Tipis Smooth AM',
+                author: 'ZalPreset_XML',
+                slots: 4,
+                duration: '00:18',
+                badges: 'SMOOTH AM',
+                effectClass: 'jj-anim-thin',
+                audio: 'Sound_AM_JJ_Tipis_Viral.mp3',
+                slotLabels: ['Foto 1', 'Foto 2 (Transisi)', 'Foto 3 (Smooth)', 'Foto 4']
+            },
+            {
+                id: 'jj-4',
+                title: 'JJ Walk Full Sound Slow',
+                author: 'FikriCapCut',
+                slots: 3,
+                duration: '00:20',
+                badges: 'KANE PARAH',
+                effectClass: 'jj-anim-beat',
+                audio: 'JJ_Walk_Full_Bass_Sound.mp3',
+                slotLabels: ['Foto Intro Walk', 'Foto Main Beat', 'Foto Ending']
+            },
+            {
+                id: 'jj-5',
+                title: 'JJ Jedug Mirror Preset XML',
+                author: 'RajaPreset',
+                slots: 2,
+                duration: '00:10',
+                badges: 'MIRROR',
+                effectClass: 'jj-anim-thin',
+                audio: 'Mirror_Jedag_Jedug_Sound.mp3',
+                slotLabels: ['Foto Mirror Kiri', 'Foto Mirror Kanan']
+            }
+        ];
+
+        // Resolusi Download & Estimasi Ukuran
+        const downloadResolutions = [
+            { res: '144p', label: '144p (Sangat Hemat)', size: '1.2 MB' },
+            { res: '240p', label: '240p (Hemat)', size: '2.5 MB' },
+            { res: '360p', label: '360p (Sedang)', size: '4.8 MB' },
+            { res: '480p', label: '480p (Standar)', size: '8.5 MB' },
+            { res: '720p', label: '720p HD (Jernih)', size: '18.4 MB' },
+            { res: '1080p', label: '1080p Full HD', size: '34.0 MB' },
+            { res: '2K', label: '2K QHD (Sangat Jernih)', size: '65.2 MB' },
+            { res: '4K', label: '4K Ultra HD Pro', size: '120.5 MB' }
+        ];
+
+        // App States
+        let currentUser = null;
+        let activePreset = null;
+        let uploadedPhotos = {};
+        let selectedResolution = '1080p';
+        let isPlayingPreview = false;
+        let previewInterval = null;
+        let activeSlideIdx = 0;
+
+        // Toast Notification System
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-cardbg text-slate-200 border-slate-700';
+            let icon = 'fa-circle-info text-neon-cyan';
+            
+            if (type === 'success') {
+                bgClass = 'bg-cardbg text-neon-lime border-neon-lime/40';
+                icon = 'fa-circle-check text-neon-lime';
+            } else if (type === 'warning') {
+                bgClass = 'bg-cardbg text-neon-pink border-neon-pink/40';
+                icon = 'fa-triangle-exclamation text-neon-pink';
+            }
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-2xl text-xs backdrop-blur-md transform transition-all duration-300 translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i> <span class="font-medium">${msg}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // Mascot 🗿 Interactive Behaviors
+        function pokeMascot() {
+            const mascot = document.getElementById('mascotWrapper');
+            mascot.classList.remove('animate-mascot-idle');
+            mascot.classList.add('animate-mascot-shake', 'animate-mascot-laser');
+            
+            const badge = document.getElementById('mascotStatusBadge');
+            badge.innerText = "APA LIAT2 JIR?! 🗿";
+            badge.className = "absolute -bottom-1 right-0 bg-neon-pink text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-lg";
+
+            setTimeout(() => {
+                mascot.classList.remove('animate-mascot-shake', 'animate-mascot-laser');
+                mascot.classList.add('animate-mascot-idle');
+                badge.innerText = "JIR!";
+                badge.className = "absolute -bottom-1 right-0 bg-neon-cyan text-black font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-lg";
+            }, 1200);
+        }
+
+        function onUsernameType(val) {
+            const mascot = document.getElementById('mascotWrapper');
+            if (val.length > 0) {
+                mascot.style.transform = `rotate(${Math.min(val.length * 2, 20)}deg) scale(1.1)`;
+            } else {
+                mascot.style.transform = 'rotate(0deg) scale(1)';
+            }
+        }
+
+        function onPasswordFocus() {
+            const mascot = document.getElementById('mascotWrapper');
+            mascot.innerText = "🙈";
+        }
+
+        function onPasswordBlur() {
+            const mascot = document.getElementById('mascotWrapper');
+            mascot.innerText = "🗿";
+        }
+
+        // Authentication Handlers
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            if (!username) return;
+
+            currentUser = username;
+            localStorage.setItem('preset_jir_user', username);
+
+            document.getElementById('displayUsername').innerText = username;
+            document.getElementById('userProfileBadge').classList.remove('hidden');
+
+            const mascot = document.getElementById('mascotWrapper');
+            mascot.innerText = "🔥";
+            mascot.classList.add('animate-bounce');
+
+            showToast(`Selamat datang, Editor ${username} Jir! 🗿`, 'success');
+
+            setTimeout(() => {
+                document.getElementById('loginOverlay').classList.add('hidden');
+            }, 800);
+        }
+
+        function checkExistingLogin() {
+            const savedUser = localStorage.getItem('preset_jir_user');
+            if (savedUser) {
+                currentUser = savedUser;
+                document.getElementById('displayUsername').innerText = savedUser;
+                document.getElementById('userProfileBadge').classList.remove('hidden');
+                document.getElementById('loginOverlay').classList.add('hidden');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('preset_jir_user');
+            currentUser = null;
+            document.getElementById('loginOverlay').classList.remove('hidden');
+            document.getElementById('userProfileBadge').classList.add('hidden');
+            showToast("Berhasil logout dari studio.", "info");
+        }
+
+        // Render Viral Presets Showcase
+        function renderViralPresets() {
+            const container = document.getElementById('viralPresetsList');
+            container.innerHTML = '';
+
+            viralPresets.forEach(preset => {
+                const card = document.createElement('div');
+                card.className = "bg-cardbg border border-slate-800 hover:border-neon-cyan/50 rounded-2xl p-4 transition-all duration-300 flex flex-col justify-between space-y-3 group hover:shadow-xl";
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[9px] font-black bg-neon-pink/20 text-neon-pink border border-neon-pink/30 px-2 py-0.5 rounded-full">
+                                ${preset.badges}
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-mono"><i class="fa-solid fa-clock mr-1"></i>${preset.duration}</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-white group-hover:text-neon-cyan transition line-clamp-1">${preset.title}</h3>
+                        <p class="text-[10px] text-slate-500">By: ${preset.author} • ${preset.slots} Slot Foto</p>
+                    </div>
+
+                    <button onclick="selectPreset('${preset.id}')"
+                        class="w-full bg-inputbg hover:bg-neon-cyan hover:text-black text-neon-cyan font-extrabold text-[11px] py-2 px-3 rounded-xl border border-neon-cyan/30 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic"></i> Pakai Template Ini
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Select Preset Action
+        function selectPreset(presetId) {
+            const preset = viralPresets.find(p => p.id === presetId);
+            if (!preset) return;
+
+            activePreset = preset;
+            uploadedPhotos = {};
+            activeSlideIdx = 0;
+
+            document.getElementById('activePresetTitle').innerText = preset.title;
+            document.getElementById('audioTrackTitle').innerText = `Audio: ${preset.audio}`;
+            document.getElementById('slotInfoText').innerText = `Isi ${preset.slots} slot foto untuk preset ini:`;
+            
+            const badge = document.getElementById('slotCounterBadge');
+            badge.innerText = `${preset.slots} Slot`;
+            badge.classList.remove('hidden');
+
+            document.getElementById('emptySlotState').classList.add('hidden');
+            
+            renderSlotsUI(preset.slots, preset.slotLabels);
+            setupSlideBars(preset.slots);
+            updateCanvasPreview();
+
+            showToast(`Template "${preset.title}" berhasil dimuat!`, 'success');
+        }
+
+        // Custom Link Analysis
+        function analyzeCustomLink() {
+            const link = document.getElementById('customUrlInput').value.trim();
+            if (!link) {
+                showToast("Masukkan URL CapCut atau Link XML terlebih dahulu!", "warning");
+                return;
+            }
+
+            const btn = document.getElementById('btnAnalyzeLink');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menganalisis...`;
+            btn.disabled = true;
+
+            setTimeout(() => {
+                btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Analisis & Ambil Slot Preset`;
+                btn.disabled = false;
+
+                const customPreset = {
+                    id: 'custom-' + Date.now(),
+                    title: 'Custom Imported Preset JIR',
+                    author: 'User Link',
+                    slots: 3,
+                    duration: '00:15',
+                    effectClass: 'jj-anim-beat',
+                    audio: 'Sound_Custom_Imported.mp3',
+                    slotLabels: ['Slot Foto Custom #1', 'Slot Foto Custom #2', 'Slot Foto Custom #3']
+                };
+
+                selectPreset(customPreset.id);
+                activePreset = customPreset;
+                showToast("Link berhasil dianalisis! 3 Slot foto terdeteksi.", "success");
+            }, 1000);
+        }
+
+        async function pasteClipboardLink() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('customUrlInput').value = text;
+                showToast("Link berhasil ditempel!", "success");
+            } catch (err) {
+                showToast("Gagal membaca clipboard. Izinkan browser.", "warning");
+            }
+        }
+
+        // Dynamic Slots UI Rendering
+        function renderSlotsUI(count, labels = []) {
+            const container = document.getElementById('dynamicSlotsContainer');
+            container.innerHTML = '';
+            container.classList.remove('hidden');
+
+            for (let i = 0; i < count; i++) {
+                const label = labels[i] || `Slot Foto #${i + 1}`;
+                const slotCard = document.createElement('div');
+                slotCard.className = "bg-inputbg border border-slate-800 hover:border-slate-700 rounded-xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3";
+                slotCard.innerHTML = `
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <div id="slotThumb_${i}" class="w-12 h-12 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-600 overflow-hidden shrink-0">
+                            <i class="fa-solid fa-image"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h4 class="text-xs font-bold text-slate-200 truncate">${label}</h4>
+                            <p class="text-[10px] text-slate-500" id="slotStatusText_${i}">Rasio: 9:16 • Belum Diunggah</p>
+                        </div>
+                    </div>
+
+                    <div class="w-full sm:w-auto">
+                        <input type="file" id="inputPhoto_${i}" accept="image/*" class="hidden" onchange="handlePhotoUpload(event, ${i})">
+                        <button onclick="document.getElementById('inputPhoto_${i}').click()"
+                            class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-neon-cyan border border-slate-700 text-xs px-3 py-1.5 rounded-lg transition font-bold flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-file-arrow-up"></i> Upload Foto
+                        </button>
+                    </div>
+                `;
+                container.appendChild(slotCard);
+            }
+        }
+
+        function handlePhotoUpload(e, idx) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const imgData = evt.target.result;
+                uploadedPhotos[idx] = imgData;
+
+                // Update Slot UI
+                const thumb = document.getElementById(`slotThumb_${idx}`);
+                thumb.innerHTML = `<img src="${imgData}" class="w-full h-full object-cover">`;
+
+                const statusText = document.getElementById(`slotStatusText_${idx}`);
+                statusText.innerText = "Foto Siap! ✓";
+                statusText.className = "text-[10px] text-neon-lime font-bold";
+
+                activeSlideIdx = idx;
+                updateCanvasPreview();
+                showToast(`Foto Slot #${idx + 1} berhasil terpasang!`, "success");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Live Preview Canvas Controller
+        function setupSlideBars(count) {
+            const box = document.getElementById('slideProgressBars');
+            box.innerHTML = '';
+            box.classList.remove('hidden');
+
+            for (let i = 0; i < count; i++) {
+                const bar = document.createElement('div');
+                bar.id = `bar_${i}`;
+                bar.className = `h-1 flex-1 rounded-full transition-all duration-300 ${i === 0 ? 'bg-neon-cyan shadow-sm shadow-neon-cyan' : 'bg-white/30'}`;
+                box.appendChild(bar);
+            }
+        }
+
+        function updateCanvasPreview() {
+            const canvasImg = document.getElementById('liveCanvasImage');
+            const placeholder = document.getElementById('previewPlaceholder');
+
+            const currentImg = uploadedPhotos[activeSlideIdx] || uploadedPhotos[0];
+
+            if (currentImg) {
+                canvasImg.src = currentImg;
+                canvasImg.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            } else {
+                canvasImg.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+
+            const effectClass = activePreset ? activePreset.effectClass : 'jj-anim-beat';
+            canvasImg.className = `w-full h-full object-cover ${isPlayingPreview ? effectClass : ''}`;
+
+            if (activePreset) {
+                for (let i = 0; i < activePreset.slots; i++) {
+                    const bar = document.getElementById(`bar_${i}`);
+                    if (bar) {
+                        bar.className = `h-1 flex-1 rounded-full transition-all duration-300 ${i === activeSlideIdx ? 'bg-neon-cyan shadow-sm shadow-neon-cyan' : 'bg-white/30'}`;
+                    }
+                }
+            }
+        }
+
+        function togglePreviewPlay() {
+            if (!activePreset) {
+                showToast("Pilih preset terlebih dahulu!", "warning");
+                return;
+            }
+
+            isPlayingPreview = !isPlayingPreview;
+            const btnText = document.getElementById('playText');
+            const btnIcon = document.querySelector('#btnTogglePlay i');
+
+            if (isPlayingPreview) {
+                btnText.innerText = "Stop JJ Preview";
+                btnIcon.className = "fa-solid fa-pause text-neon-pink";
+                startSlideInterval();
+            } else {
+                btnText.innerText = "Putar Efek JJ";
+                btnIcon.className = "fa-solid fa-play text-neon-lime";
+                stopSlideInterval();
+            }
+            updateCanvasPreview();
+        }
+
+        function startSlideInterval() {
+            stopSlideInterval();
+            previewInterval = setInterval(() => {
+                if (activePreset && activePreset.slots > 0) {
+                    activeSlideIdx = (activeSlideIdx + 1) % activePreset.slots;
+                    updateCanvasPreview();
+                }
+            }, 1400);
+        }
+
+        function stopSlideInterval() {
+            if (previewInterval) {
+                clearInterval(previewInterval);
+                previewInterval = null;
+            }
+        }
+
+        // Render Resolution Grid UI
+        function renderResolutionGrid() {
+            const grid = document.getElementById('resolutionGrid');
+            grid.innerHTML = '';
+
+            downloadResolutions.forEach(res => {
+                const btn = document.createElement('button');
+                const isSelected = res.res === selectedResolution;
+                btn.type = 'button';
+                btn.className = `p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between ${
+                    isSelected 
+                    ? 'bg-neon-cyan/10 border-neon-cyan text-neon-cyan glow-cyan' 
+                    : 'bg-inputbg border-slate-800 text-slate-300 hover:border-slate-700'
+                }`;
+                btn.onclick = () => selectResolution(res.res);
+
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black font-mono">${res.res}</span>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-xs"></i>' : ''}
+                    </div>
+                    <span class="text-[9px] text-slate-400 mt-1">${res.size}</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function selectResolution(resKey) {
+            selectedResolution = resKey;
+            renderResolutionGrid();
+            
+            const resObj = downloadResolutions.find(r => r.res === resKey);
+            if (resObj) {
+                document.getElementById('dlSizeLabel').innerText = resObj.size;
+            }
+        }
+
+        // Render & Export Video Simulation
+        function startStudioRender() {
+            if (!activePreset) {
+                showToast("Pilih preset JJ terlebih dahulu!", "warning");
+                return;
+            }
+
+            const uploadedCount = Object.keys(uploadedPhotos).length;
+            if (uploadedCount < activePreset.slots) {
+                showToast(`Lengkapi semua ${activePreset.slots} slot foto dulu jir! (${uploadedCount}/${activePreset.slots} terisi)`, "warning");
+                return;
+            }
+
+            const progressBox = document.getElementById('renderProgressBox');
+            const progressBar = document.getElementById('renderProgressBar');
+            const percentText = document.getElementById('renderPercentText');
+            const statusText = document.getElementById('renderStatusText');
+            const btnStart = document.getElementById('btnStartRender');
+            const btnDownload = document.getElementById('btnFinalDownload');
+
+            progressBox.classList.remove('hidden');
+            btnDownload.classList.add('hidden');
+            btnStart.disabled = true;
+            btnStart.classList.add('opacity-50');
+
+            let progress = 0;
+            const steps = [
+                `Menyelaraskan Beat Sound dengan Slot Foto...`,
+                `Menerapkan Efek JJ (${activePreset.title})...`,
+                `Rendering Frame Resolusi ${selectedResolution}...`,
+                `Menggabungkan Output MP4 (Bebas Watermark)...`,
+                `Selesai Jir! File Siap Diunduh.`
+            ];
+
+            const renderInterval = setInterval(() => {
+                progress += Math.floor(Math.random() * 7) + 3;
+                if (progress > 100) progress = 100;
+
+                progressBar.style.width = `${progress}%`;
+                percentText.innerText = `${progress}%`;
+
+                if (progress < 20) statusText.innerText = steps[0];
+                else if (progress < 45) statusText.innerText = steps[1];
+                else if (progress < 70) statusText.innerText = steps[2];
+                else if (progress < 95) statusText.innerText = steps[3];
+                else statusText.innerText = steps[4];
+
+                if (progress >= 100) {
+                    clearInterval(renderInterval);
+                    btnStart.disabled = false;
+                    btnStart.classList.remove('opacity-50');
+
+                    // Set download link
+                    const finalImg = uploadedPhotos[0] || 'https://via.placeholder.com/1080x1920';
+                    btnDownload.href = finalImg;
+                    btnDownload.setAttribute('download', `Preset_Jir_${selectedResolution}_${Date.now()}.mp4`);
+                    
+                    const resObj = downloadResolutions.find(r => r.res === selectedResolution);
+                    document.getElementById('dlSizeLabel').innerText = resObj ? resObj.size : 'HD';
+                    
+                    btnDownload.classList.remove('hidden');
+                    showToast(`Video JJ resolusi ${selectedResolution} siap diunduh! 🔥`, "success");
+                }
+            }, 200);
+        }
+
+        function onDownloadClick() {
+            showToast("Mengunduh file video ke perangkat kamu...", "success");
+        }
+
+        // Initialize App on Page Load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkExistingLogin();
+            renderViralPresets();
+            renderResolutionGrid();
+            selectResolution('1080p');
+        });
+    </script>
+</body>
+</html>
